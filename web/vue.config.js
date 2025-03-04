@@ -11,17 +11,17 @@
 // };
 //
 // vue.config.js
-// module.exports = {
-//     devServer: {
-//         port: 8081, // 设置开发服务器的端口号
-//         host: 'localhost', // 设置开发服务器的主机名
-//         open: true, // 自动打开浏览器
-//         proxy: {
-//             '/api': {
-//                 target: 'http://localhost:8080', // 后端接口的地址
-//                 changeOrigin: true, // 开启代理
-//                 pathRewrite: { '^/api': '' }, // 将 /api 替换为空字符串
-//             },
-//         },
-//     },
-// };
+module.exports = {
+    devServer: {
+        port: 8081, // 设置开发服务器的端口号
+        host: 'localhost', // 设置开发服务器的主机名
+        // open: true, // 自动打开浏览器
+        proxy: {
+            '/test': {
+                target: 'http://localhost:8080', // 后端接口的地址
+                changeOrigin: true, // 开启代理
+                pathRewrite: { '^/test': '' }, // 将 /api 替换为空字符串
+            },
+        },
+    },
+};

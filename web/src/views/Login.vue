@@ -1,5 +1,7 @@
 <script>
 
+import axios from "axios";
+
 export default {
 	data() {
 		return {
@@ -14,16 +16,11 @@ export default {
 			this.$router.push('/register');
 		},
 		async handleLogin() {
-			try {
-				const response =  await this.$http.get('api/test').then(response =>{
-					console.log(response)
-				})
-				console.log('登录成功！返回数据：', response.data);
-				// 登录成功后的逻辑（例如跳转页面、保存 token 等）
-			} catch (error) {
-				console.error('登录失败：', error.response.data);
-				// 处理错误（例如显示提示信息）
-			}
+			// const response =  await this.$http.get('/test').then(response =>{
+			axios.get("test").then(res => {
+				console.log(res)
+			})
+
 		}
 	}
 }
