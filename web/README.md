@@ -1,4 +1,4 @@
-# demo-vue2
+# intelligent-rating-system-web
 
 ## Project setup
 

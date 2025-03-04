@@ -31,7 +31,7 @@ export default {
 					</div>
 					<button class="btn" type="submit">登录</button>
 					<div class="sign-link">
-						<p>没有账号?<a class="signup-link" href="#" @click="goRegister">注册</a></p>
+						<p>没有账号? <a class="signup-link" href="#" @click="goRegister">注册</a></p>
 					</div>
 				</form>
 			</div>
