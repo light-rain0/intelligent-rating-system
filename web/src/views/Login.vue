@@ -1,14 +1,30 @@
 <script>
+import axios from "axios";
+
 export default {
 	data() {
 		return {
-			username: '',
-			password: ''
+			loginForm: {
+				username: '',
+				password: ''
+			}
 		}
 	},
 	methods: {
 		goRegister() {
 			this.$router.push('/register');
+		},
+		async handleLogin() {
+			try {
+				const response = await axios.post('http://localhost:8080/api/login', this.loginForm).then(response =>{
+					console.log(response)
+				})
+				console.log('登录成功！返回数据：', response.data);
+				// 登录成功后的逻辑（例如跳转页面、保存 token 等）
+			} catch (error) {
+				console.error('登录失败：', error.response.data);
+				// 处理错误（例如显示提示信息）
+			}
 		}
 	}
 }
@@ -22,14 +38,14 @@ export default {
 				<form action="">
 					<h2>登录</h2>
 					<div class="input-group">
-						<input required type="text">
+						<input v-model="loginForm.username" required type="text">
 						<label for="">username</label>
 					</div>
 					<div class="input-group">
-						<input v-model="username" required type="password">
+						<input v-model="loginForm.password" required type="password">
 						<label for="">password</label>
 					</div>
-					<button class="btn" type="submit">登录</button>
+					<button class="btn" type="button" @click="handleLogin">登录</button>
 					<div class="sign-link">
 						<p>没有账号? <a class="signup-link" href="#" @click="goRegister">注册</a></p>
 					</div>
@@ -42,7 +58,7 @@ export default {
 <style lang="css">
 
 * {
-	margin:0;
+	margin: 0;
 }
 
 #all {
