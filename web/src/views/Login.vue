@@ -1,5 +1,4 @@
 <script>
-import axios from "axios";
 
 export default {
 	data() {
@@ -16,7 +15,7 @@ export default {
 		},
 		async handleLogin() {
 			try {
-				const response = await axios.post('http://localhost:8080/api/login', this.loginForm).then(response =>{
+				const response =  await this.$http.get('api/test').then(response =>{
 					console.log(response)
 				})
 				console.log('登录成功！返回数据：', response.data);
@@ -33,6 +32,7 @@ export default {
 
 <template>
 	<div id="all">
+		<button @click="handleLogin">测试</button>
 		<div class="wrapper">
 			<div class="form-wrapper sign-in">
 				<form action="">
