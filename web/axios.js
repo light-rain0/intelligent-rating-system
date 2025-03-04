@@ -15,11 +15,8 @@ const instance = axios.create({
         'Content-Type': 'application/json',
     },
 });
-
-export default instance;
-//
-// // 请求拦截器
-// service.interceptors.request.use(
+// 请求拦截器
+// instance.interceptors.request.use(
 //     (config) => {
 //         return config;
 //     },
@@ -27,17 +24,24 @@ export default instance;
 //         return Promise.reject("请求失败" + error);
 //     }
 // );
-//
-// // 响应拦截器
-// service.interceptors.response.use(
-//     (response) => {
-//         console.log('响应拦截器触发:', response.status);
-//         if (response.status === 200) {
-//             return response.data;
-//         } else {
-//             console.error('服务器返回错误状态码:', response.status);
-//             return Promise.reject(new Error(response.data.message || '未知错误'));
-//         }
-//     }
-// );
+
+// 响应拦截器
+axios.interceptors.response.use(
+    (response) => {
+        if (response.data.statusCode !== "C00000") {
+            alert(response.data.statusMessage);
+            return Promise.reject(response.data.statusMessage);
+        }
+
+        return response;
+    },
+    (error) => {
+        console.log(error);
+    }
+);
+
+export default instance;
+
+
+
 

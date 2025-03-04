@@ -21,6 +21,7 @@ public enum RespStatus {
     ACCESS_RESOURCE_DOES_NOT_EXIST("C00003", "访问资源不存在: {0}"),
     UNSUPPORTED_REQUEST_METHOD("C00004", "不支持的请求方式: {0}"),
     CURRENT_PARAMETERS_CANNOT_BE_READ("C0005", "当前参数信息无法读取, 请检查是否存在类型错误!"),
+    INCORRECT_ACCOUNT_OR_PASSWORD("C0006", "账号或密码错误"),
 
     ;
     private final String code;

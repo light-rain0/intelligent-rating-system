@@ -30,6 +30,10 @@ public final class R<DATA> {
         return new R<>(data, RespStatus.SUCCESS);
     }
 
+    public static <DATA> R<DATA> success() {
+        return new R<>(null, RespStatus.SUCCESS);
+    }
+
     public static <DATA> R<DATA> failure(RespStatus status) {
         return new R<>(null, status);
     }

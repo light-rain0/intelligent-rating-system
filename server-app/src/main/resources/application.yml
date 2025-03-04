@@ -3,4 +3,10 @@ spring:
     name: server-app
   datasource:
     url: jdbc:h2:mem:test_db
-
+  mvc:
+    servlet:
+      path: /api
+  sql:
+    init:
+      schema-locations: 
+        - classpath*:init_schema.sql
