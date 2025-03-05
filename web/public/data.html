@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>数据分析</title> 
+		<link href="css/antd.min.css" rel="stylesheet" type="text/css" />
+		<link href="css/Menu.css" rel="stylesheet" type="text/css"/>
+		<script src="js/vue.min.js"></script>
+		<script src="js/antd.min.js"></script>
+		<script src="js/xlsx.full.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/echarts@5.2.2/dist/echarts.min.js"></script>
+		<style>/
+        #chart-container {
+            margin: 24px;
+            padding: 24px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            min-height: 500px;
+            position: relative;
+        }
+
+        .dropdown-menu {
+            margin: 16px 24px 0;
+            width: 200px;
+            z-index: 100;
+            position: relative;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            color: rgba(0,0,0,0.85);
+            margin-bottom: 20px;
+            padding-left: 8px;
+            border-left: 4px solid #1890ff;
+        }
+
+        #components-layout-demo-custom-trigger {
+            min-height: 100vh;
+        }
+
+        #crumbs {
+            margin: 16px 24px;
+            padding: 8px 16px;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+    </style>
+	</head>
+	<body>
+		<div id="app">
+			<a-layout id="components-layout-demo-custom-trigger">
+				<a-layout-sider v-model="collapsed" :trigger="null" collapsible style="background:linear-gradient(to right, #9796f0, #fbc7d4);">
+					<div>
+						<a-menu :default-open-keys="['sub-1']" :default-selected-keys="['sub-1-1-2']" mode="inline" style="width: 200px">
+							<a-sub-menu key="sub-1" title="工作台">
+								<a-menu-item-group key="sub-1-1">
+									<a-menu-item key="sub-1-1-1"><a href="home.html">导入</a></a-menu-item>
+									<a-menu-item key="sub-1-1-2">Data</a-menu-item>
+								</a-menu-item-group>
+							</a-sub-menu>
+							<a-sub-menu key="sub2" title="日志">
+								<a-menu-item key="5">A</a-menu-item>
+								<a-menu-item key="6">B</a-menu-item>
+							</a-sub-menu>
+						</a-menu>
+					</div>
+				</a-layout-sider>
+
+				<a-layout>
+					<a-layout-header style="background: #fff; padding: 0"></a-layout-header>
+
+					<a-breadcrumb id="crumbs">
+						<a-breadcrumb-item>Home</a-breadcrumb-item>
+						<a-breadcrumb-item>Data</a-breadcrumb-item>
+					</a-breadcrumb>
+
+					<a-layout-content>
+						<div class="dropdown-menu">
+							<button class="dropdown-toggle">📊 选择分析维度</button>
+							<ul class="dropdown-list">
+								<li class="dropdown-list__item" style="--delay:0.2s" @click="renderChart('score')">📈 成绩分布</li>
+								<li class="dropdown-list__item" style="--delay:0.4s" @click="renderChart('status')">🎯 考试状态</li>
+								<li class="dropdown-list__item" style="--delay:0.6s" @click="renderChart('ranking')">🏆 学生排名</li>
+							</ul>
+						</div>
+						
+						<div id="chart-container">
+							<div class="chart-title">{{ chartTitle }}</div>
+							<div id="main-chart" style="width: 100%; height: 450px;"></div>
+						</div>
+					</a-layout-content>
+				</a-layout>
+			</a-layout>
+		</div>
+		<script>
+		var vm = new Vue({
+		    el: "#app",
+		    data() {
+		        return {
+		            collapsed: false,
+		            chartData: [],
+		            chartTitle: '请选择分析维度'
+		        };
+		    },
+		    mounted() {
+		        const savedData = localStorage.getItem('examData');
+		        if(savedData) this.chartData = JSON.parse(savedData);
+		    },
+		    methods: {
+		        // 数据处理方法
+		        calculateScoreDistribution(scores) {
+		            return [
+		                scores.filter(s => s < 60).length,
+		                scores.filter(s => s >= 60 && s < 70).length,
+		                scores.filter(s => s >= 70 && s < 80).length,
+		                scores.filter(s => s >= 80 && s < 90).length,
+		                scores.filter(s => s >= 90).length
+		            ];
+		        },
+		
+		        // 图表渲染方法
+		        renderChart(type) {
+		            const chartDom = document.getElementById('main-chart');
+		            const myChart = echarts.init(chartDom);
+		            myChart.clear();
+		
+		            switch(type) {
+		                case 'score':
+		                    this.chartTitle = '成绩分布统计';
+		                    this.renderScoreChart(myChart);
+		                    break;
+		                case 'status':
+		                    this.chartTitle = '考试状态分布';
+		                    this.renderStatusChart(myChart);
+		                    break;
+		                case 'ranking':
+		                    this.chartTitle = '前十名学生成绩';
+		                    this.renderRankingChart(myChart);
+		                    break;
+		            }
+		        },
+		
+		        renderScoreChart(chart) {
+		            const scores = this.chartData.map(item => parseFloat(item['8']) || 0);
+		            const option = {
+		                title: { show: false },
+		                tooltip: { trigger: 'axis' },
+		                xAxis: {
+		                    type: 'category',
+		                    data: ['0-59', '60-69', '70-79', '80-89', '90-100'],
+		                    axisLabel: { color: '#666' }
+		                },
+		                yAxis: { 
+		                    type: 'value',
+		                    axisLabel: { color: '#666' }
+		                },
+		                series: [{
+		                    type: 'bar',
+		                    data: this.calculateScoreDistribution(scores),
+		                    itemStyle: {
+		                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+		                            { offset: 0, color: '#83bff6' },
+		                            { offset: 1, color: '#188df0' }
+		                        ])
+		                    }
+		                }],
+		                grid: { containLabel: true, left: '3%', right: '3%' }
+		            };
+		            chart.setOption(option);
+		        },
+		
+		        renderStatusChart(chart) {
+		        	const statusCounts = {
+		        		completed: this.chartData.filter(item => item['9'] !== '未参加考试').length,
+		        		uncompleted: this.chartData.filter(item => item['9'] === '未参加考试').length
+		        	};
+		        	
+		        	const option = {
+		        		title: { show: false },
+		        		tooltip: { 
+		        			trigger: 'item',
+		        			formatter: '{a} <br/>{b}: {c} ({d}%)'
+		        		},
+		        		series: [{
+		        			type: 'pie',
+		        			radius: ['40%', '65%'],
+		        			center: ['50%', '55%'],
+		        			data: [
+		        				{ value: statusCounts.completed, name: '已参加', itemStyle: { color: '#36cbcb' } },
+		        				{ value: statusCounts.uncompleted, name: '未参加', itemStyle: { color: '#fad337' } }
+		        			],
+		        			label: {
+		        				color: '#666',
+		        				fontSize: 14
+		        			},
+		        			emphasis: {
+		        				itemStyle: {
+		        					shadowBlur: 10,
+		        					shadowOffsetX: 0,
+		        					shadowColor: 'rgba(0, 0, 0, 0.5)'
+		        				}
+		        			}
+		        		}]
+		        	};
+		        	chart.setOption(option);
+		        },
+		
+		       
+		        renderRankingChart(chart) {
+		        	const sortedData = [...this.chartData]
+		        		.sort((a, b) => b['8'] - a['8'])
+		        		.slice(0, 10);
+		        		
+		        	const option = {
+		        		title: { show: false },
+		        		tooltip: { trigger: 'axis' },
+		        		xAxis: {
+		        			type: 'category',
+		        			data: sortedData.map(item => item['2']),
+		        			axisLabel: { 
+		        				color: '#666',
+		        				rotate: 45 
+		        			}
+		        		},
+		        		yAxis: { 
+		        			type: 'value',
+		        			axisLabel: { color: '#666' }
+		        		},
+		        		series: [{
+		        			type: 'bar',
+		        			data: sortedData.map(item => item['8']),
+		        			itemStyle: {
+		        				color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+		        					{ offset: 0, color: '#975fe4' },
+		        					{ offset: 1, color: '#722ed1' }
+		        				])
+		        			}
+		        		}],
+		        		grid: { 
+		        			containLabel: true,
+		        			left: '3%',
+		        			right: '3%',
+		        			bottom: '15%'
+		        		}
+		        	};
+		        	chart.setOption(option);
+		        }
+			}
+		});
+		</script>
+	</body>
+</html>

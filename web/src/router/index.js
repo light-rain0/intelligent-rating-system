@@ -18,6 +18,14 @@ const routes = [
     {
         path: '/register',
         component: Register
+    },
+    // 跳转主页面路径
+    {
+        path: '/html-file',
+        redirect: () => {
+            window.location.href = '/home.html'; // 重定向到静态文件
+            return ''; // 防止 Vue Router 报错
+        }
     }
 ]
 

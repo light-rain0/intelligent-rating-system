@@ -1,15 +1,45 @@
 <script>
+import axios from "../../axios";
+
 export default {
 	name: "RegisterView",
 	data() {
 		return {
-			username: '',
-			password: ''
+			registerForm: {
+				username: 'admin',
+				password: 'admin'
+			},
+			confirmPasswd: ''
 		}
 	},
 	methods: {
 		goLogin() {
 			this.$router.push('/login');
+		},
+		async handRegister() {
+			if (this.registerForm.password === this.confirmPasswd) {
+				console.log(("二次密码一致"+ this.registerForm.password + this.confirmPasswd))
+				axios.post(
+					"/api/auth/register",
+					this.registerForm
+				)
+					.then(res => res.data)
+					.then(data => {
+						console.log("token", data.data);
+						if (data.statusCode === 'C00000') {
+							// 提示注册成功
+							alert("注册成功")
+							// this.$router.push('/register');
+						} else {
+							alert(data.statusMessage);
+						}
+					})
+					.catch(err => {
+					});
+			} else {
+				alert(("用户名或密码错误"+ this.registerForm.password + this.confirmPasswd))
+			}
+
 		}
 	}
 }
@@ -22,16 +52,20 @@ export default {
 				<form action="">
 					<h2>注册</h2>
 					<div class="input-group">
-						<input required type="text">
+						<input v-model.trim="registerForm.username" required type="text">
 						<label for="">username</label>
 					</div>
 					<div class="input-group">
-						<input v-model="username" required type="password">
+						<input v-model.trim="registerForm.password" required type="password">
 						<label for="">password</label>
 					</div>
-					<button class="btn" type="submit">注册</button>
+					<div class="input-group">
+						<input v-model="confirmPasswd" required type="password">
+						<label for="">confirm password</label>
+					</div>
+					<button class="btn" type="submit" @click="handRegister()">注册</button>
 					<div class="sign-link">
-						<p>返回登录<a class="signup-link" href="#" @click="goLogin()">登录</a></p>
+						<p>返回<a class="signup-link" href="#" @click="goLogin()">登录</a></p>
 					</div>
 				</form>
 			</div>

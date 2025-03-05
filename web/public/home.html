@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>首页</title>
+		<link href="css/antd.min.css" rel="stylesheet" type="text/css" />
+		<script src="js/vue.min.js"></script>
+		<script src="js/antd.min.js"></script>
+		<script src="js/xlsx.full.min.js"></script>
+		<style>
+		/* 固定表头样式 */
+        .ant-table-thead > tr:first-child > th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: #fafafa !important;
+        }
+        
+        .ant-table-thead > tr:nth-child(2) > th {
+            position: sticky;
+            top: 49px;
+            z-index: 1;
+            background: #fafafa !important;
+        }
+
+        /* 布局容器 */
+        #components-layout-demo-custom-trigger {
+            min-height: 100vh;
+        }
+
+        /* 表格容器样式 */
+        #table-container {
+            margin: 24px 16px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        /* 工具栏布局 */
+        .toolbar {
+            padding: 24px 24px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* 表格基础样式 */
+        .ant-table {
+            min-width: 100% !important;
+            border: 1px solid #f0f0f0;
+        }
+
+        /* 组件间距 */
+        .filter-group {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        /* 面包屑样式优化 */
+        #crumbs {
+            margin: 16px 24px;
+            padding: 8px 16px;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        /* 表名显示样式 */
+        .sheet-name {
+            margin: 0 24px 16px;
+            padding: 8px 16px;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            font-size: 14px;
+            color: rgba(0, 0, 0, 0.85);
+        }
+
+        /* 隐藏上传文件列表 */
+        .ant-upload-list {
+            display: none;
+        }
+    </style>
+	</head>
+	<body>
+		<div id="app">
+			<a-layout id="components-layout-demo-custom-trigger">
+				<a-layout-sider v-model="collapsed" :trigger="null" collapsible style="background:linear-gradient(to right, #9796f0, #fbc7d4);">
+					<div>
+						<a-menu :default-open-keys="['sub-1']" :default-selected-keys="['sub-1-1-1']" mode="inline" style="width: 200px">
+							<a-sub-menu key="sub-1" title="工作台">
+								<a-menu-item-group key="sub-1-1">
+									<a-menu-item key="sub-1-1-1">导入</a-menu-item>
+									<a-menu-item key="sub-1-1-2"><a href="Data.html">Data</a></a-menu-item>
+								</a-menu-item-group>
+							</a-sub-menu>
+							<a-sub-menu key="sub2" title="日志">
+								<a-menu-item key="5">A</a-menu-item>
+								<a-menu-item key="6">B</a-menu-item>
+							</a-sub-menu>
+						</a-menu>
+					</div>
+				</a-layout-sider>
+
+				<a-layout>
+					<!-- 头部区域 -->
+					<a-layout-header style="background: #fff; padding: 0"></a-layout-header>
+
+					<!-- 面包屑导航 -->
+					<a-breadcrumb id="crumbs">
+						<a-breadcrumb-item>Home</a-breadcrumb-item>
+						<a-breadcrumb-item>导入</a-breadcrumb-item>
+					</a-breadcrumb>
+
+					<!-- 表名显示 -->
+					<div v-if="sheetName" class="sheet-name">
+						当前表格：{{ sheetName }}
+					</div>
+
+					<!-- 主要内容区域 -->
+					<a-layout-content>
+						<div id="table-container">
+							<div class="toolbar">
+								<!-- 左侧操作区 -->
+								<div class="filter-group">
+									<!-- 文件上传 -->
+									<a-upload :before-upload="beforeUpload"
+										:multiple="true" 
+										:show-upload-list="false"
+										name="file">
+										<a-button type="primary">上传文件
+											<a-icon type="upload" />
+										</a-button>
+									</a-upload>
+
+									<!-- 排序筛选组件 -->
+									<a-select v-model="sortOrder" placeholder="排序方式" style="width: 120px">
+										<a-select-option value="">默认排序</a-select-option>
+										<a-select-option value="asc">成绩升序</a-select-option>
+										<a-select-option value="desc">成绩降序</a-select-option>
+									</a-select>
+
+									<a-select v-model="examStatus" placeholder="考试状态" style="width: 120px">
+										<a-select-option value="">全部</a-select-option>
+										<a-select-option value="completed">已参加</a-select-option>
+										<a-select-option value="uncompleted">未参加</a-select-option>
+									</a-select>
+
+									<a-select v-model="passStatus" placeholder="成绩状态" style="width: 120px">
+										<a-select-option value="">全部</a-select-option>
+										<a-select-option value="pass">合格</a-select-option>
+										<a-select-option value="fail">不合格</a-select-option>
+									</a-select>
+
+									<a-input-number v-model="passingScore" :max="100" :min="0" placeholder="及格线" style="width: 100px" />
+								</div>
+
+								<!-- 搜索框 -->
+								<a-input-search v-model="searchText" allow-clear placeholder="输入关键词搜索" style="width: 300px" @search="handleSearch" />
+							</div>
+
+							<!-- 数据表格 -->
+							<div style="padding: 0 24px 24px;">
+								<a-table :columns="columns" :data-source="filteredData" :pagination="false" :rowClassName="(record, index) => (index % 2 === 1 ? 'table-row-light' : 'table-row-dark')" :scroll="{ x: 'max-content', y: 'calc(100vh - 280px)' }"
+								 bordered
+								  />
+							</div>
+						</div>
+					</a-layout-content>
+				</a-layout>
+			</a-layout>
+		</div>
+		<script>
+			var vm = new Vue({
+				el: "#app",
+				data() {
+					return {
+						// 布局状态
+						collapsed: false, // 侧边栏折叠状态
+						current: ['mail'], // 当前菜单项
+						openKeys: ['sub1'], // 打开的菜单项
+
+						// 表格数据
+						tableData: [], // 当前显示数据
+						originalData: [], // 原始数据备份
+						columns: [], // 表头配置
+						sheetName: '', // Excel表名
+
+						// 筛选排序状态
+						searchText: '', // 搜索关键词
+						sortOrder: '', // 排序方式（asc/desc/空）
+						examStatus: '', // 考试状态筛选
+						passStatus: '', // 成绩状态筛选
+						passingScore: 70 // 及格分数线
+					};
+				},
+				computed: {
+					// 处理后的表格数据
+					filteredData() {
+						let data = this.tableData;
+
+						//文本搜索过滤
+						if (this.searchText) {
+							const search = this.searchText.toLowerCase();
+							data = data.filter(row =>
+								Object.values(row).some(value =>
+									String(value).toLowerCase().includes(search))
+							);
+						}
+
+						//考试状态筛选）
+						if (this.examStatus === 'completed') {
+							data = data.filter(row => row['9'] !== '未参加考试');
+						} else if (this.examStatus === 'uncompleted') {
+							data = data.filter(row => row['9'] === '未参加考试');
+						}
+
+						//成绩状态筛选
+						if (this.passStatus === 'pass') {
+							data = data.filter(row => {
+								const score = parseFloat(row['8']);
+								return !isNaN(score) && score >= this.passingScore;
+							});
+						} else if (this.passStatus === 'fail') {
+							data = data.filter(row => {
+								const score = parseFloat(row['8']);
+								return !isNaN(score) && score < this.passingScore;
+							});
+						}
+
+						//成绩排序
+						if (this.sortOrder) {
+							data = [...data].sort((a, b) => {
+								const scoreA = parseFloat(a['8']) || 0;
+								const scoreB = parseFloat(b['8']) || 0;
+								return this.sortOrder === 'asc' ? scoreA - scoreB : scoreB - scoreA;
+							});
+						}
+
+						return data;
+					}
+				},
+				methods: {
+					// 文件上传前处理
+					beforeUpload(file) {
+						const reader = new FileReader();
+						reader.onload = (e) => {
+							// 解析Excel数据
+							const workbook = XLSX.read(e.target.result, {
+								type: 'binary'
+							});
+							const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+							const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+								header: 1
+							});
+
+							// 获取表名
+							this.sheetName = workbook.SheetNames[0];
+
+							// 生成表头
+							const frontColumns = jsonData[1].slice(0, 25).map((col, index) => ({
+								title: col,
+								dataIndex: index.toString(),
+								key: index.toString(),
+								width: 200,
+								ellipsis: true,
+								align: 'center'
+							}));
+
+							const middleColumns = jsonData[2].slice(25, 77).map((col, index) => ({
+								title: col,
+								dataIndex: (25 + index).toString(),
+								key: (25 + index).toString(),
+								width: 200,
+								ellipsis: true,
+								align: 'center'
+							}));
+
+							const endColumns = jsonData[1].slice(77, 80).map((col, index) => ({
+								title: col || `列${77 + index}`,
+								dataIndex: (77 + index).toString(),
+								key: (77 + index).toString(),
+								width: 200,
+								ellipsis: true,
+								align: 'center'
+							}));
+
+							this.columns = [...frontColumns, ...middleColumns, ...endColumns];
+							const newData = jsonData.slice(3).map((row, rowIndex) => {
+								const rowData = {};
+								for (let cellIndex = 0; cellIndex < 81; cellIndex++) {
+									rowData[cellIndex.toString()] = row[cellIndex] || '';
+								}
+								rowData.key = rowIndex.toString();
+								return rowData;
+							});
+
+							this.originalData = newData;
+							this.tableData = newData;
+							localStorage.setItem('examData', JSON.stringify(newData));
+						};
+						reader.readAsBinaryString(file);
+						return false;
+					},
+
+					// 搜索处理
+					handleSearch(value) {
+						this.searchText = value;
+					}			
+				}
+			});
+		</script>
+	</body>
+</html>

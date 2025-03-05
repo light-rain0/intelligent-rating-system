@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>data</title> 
+		<link href="css/antd.min.css" rel="stylesheet" type="text/css" />
+		<script src="js/vue.min.js"></script>
+		<script src="js/antd.min.js"></script>
+		<script src="js/xlsx.full.min.js"></script>
+		<style>
+        /* 布局容器 */
+        #components-layout-demo-custom-trigger {
+            min-height: 100vh;
+        }
+
+        /* 表格容器样式 */
+        #table-container {
+            margin: 24px 16px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        /* 表格基础样式 */
+        .ant-table {
+            min-width: 100% !important;
+            border: 1px solid #f0f0f0;
+        }
+
+        /* 组件间距 */
+        .filter-group {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        /* 面包屑样式优化 */
+        #crumbs {
+            margin: 16px 24px;
+            padding: 8px 16px;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+    </style>
+	</head>
+	<body>
+		<div id="app">
+			<a-layout id="components-layout-demo-custom-trigger">
+				<a-layout-sider v-model="collapsed" :trigger="null" collapsible style="background:linear-gradient(to right, #9796f0, #fbc7d4);">
+					<div>
+						<a-menu :default-open-keys="['sub-1']" :default-selected-keys="['sub-1-1-2']" mode="inline" style="width: 200px">
+							<a-sub-menu key="sub-1" title="工作台">
+								<a-menu-item-group key="sub-1-1">
+									<a-menu-item key="sub-1-1-1"><a href="home.html">导入</a></a-menu-item>
+									<a-menu-item key="sub-1-1-2">Data</a-menu-item>
+								</a-menu-item-group>
+							</a-sub-menu>
+							<a-sub-menu key="sub2" title="日志">
+								<a-menu-item key="5">A</a-menu-item>
+								<a-menu-item key="6">B</a-menu-item>
+							</a-sub-menu>
+						</a-menu>
+					</div>
+				</a-layout-sider>
+
+				<a-layout>
+					<!-- 头部区域 -->
+					<a-layout-header style="background: #fff; padding: 0"></a-layout-header>
+
+					<!-- 面包屑导航 -->
+					<a-breadcrumb id="crumbs">
+						<a-breadcrumb-item>Home</a-breadcrumb-item>
+						<a-breadcrumb-item>Data</a-breadcrumb-item>
+					</a-breadcrumb>
+
+					<!-- 主要内容区域 -->
+					<a-layout-content>
+						    
+					</a-layout-content>
+				</a-layout>
+			</a-layout>
+		</div>
+		<script>
+			var vm = new Vue({
+				el: "#app",
+				data() {
+					return {
+						
+						collapsed: false, // 侧边栏折叠状态
+						current: ['mail'], // 当前菜单项
+						openKeys: ['sub1'] // 打开的菜单项
+
+					};
+				},
+				computed: {
+					
+					
+				},
+				methods: {
+					
+				}
+			});
+		</script>
+	</body>
+</html>

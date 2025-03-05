@@ -1,0 +1,28 @@
+
+#content{
+	position: relative;
+}
+#time{
+	position: absolute;
+	right: 30px;
+}
+#content{
+	position: relative;
+}
+#crumbs{
+	position: absolute;
+	top: 65px;
+	left: 16px; 
+}
+button-container {
+    text-align: center;
+}
+#upload{
+	width: 500px;
+	position: absolute;
+	top: 65px;
+	left: 65px; 
+}
+#upload{
+	height: 800px;
+}
