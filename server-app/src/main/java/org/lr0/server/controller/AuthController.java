@@ -30,4 +30,12 @@ public class AuthController {
     public R<String> login(@RequestBody @Validated LoginInfoReq loginInfoReq) {
         return authService.login(loginInfoReq);
     }
+
+    /**
+     * 用户注册
+     */
+    @PostMapping("/register")
+    public R<Void> register(@RequestBody @Validated LoginInfoReq loginInfoReq) {
+        return authService.register(loginInfoReq);
+    }
 }

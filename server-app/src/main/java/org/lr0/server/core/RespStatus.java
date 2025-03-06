@@ -22,6 +22,7 @@ public enum RespStatus {
     UNSUPPORTED_REQUEST_METHOD("C00004", "不支持的请求方式: {0}"),
     CURRENT_PARAMETERS_CANNOT_BE_READ("C0005", "当前参数信息无法读取, 请检查是否存在类型错误!"),
     INCORRECT_ACCOUNT_OR_PASSWORD("C0006", "账号或密码错误"),
+    ACCOUNT_ALREADY_EXISTS("C0007", "账号已存在"),
 
     ;
     private final String code;

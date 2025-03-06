@@ -41,4 +41,18 @@ public class AuthServiceImpl implements AuthService {
         this.userInfoMapper.updateById(userInfoUpdate);
         return R.success(token);
     }
+
+    @Override
+    public R<Void> register(LoginInfoReq loginInfoReq) {
+        UserInfo userInfo = this.userInfoMapper.selectByUsername(loginInfoReq.getUsername());
+        if (userInfo != null) {
+            return R.failure(RespStatus.ACCOUNT_ALREADY_EXISTS);
+        }
+
+        UserInfo userInfoInsert = new UserInfo()
+                .setUsername(loginInfoReq.getUsername())
+                .setPassword(loginInfoReq.getPassword());
+        this.userInfoMapper.insert(userInfoInsert);
+        return R.success();
+    }
 }

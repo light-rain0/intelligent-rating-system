@@ -19,4 +19,12 @@ public interface UserInfoMapper extends BaseMapper<UserInfo> {
                         .eq(UserInfo::getPassword, password)
         );
     }
+
+    default UserInfo selectByUsername(String username) {
+        return this.selectOne(
+                Wrappers.<UserInfo>lambdaQuery()
+                        .eq(UserInfo::getUsername, username)
+        );
+    }
+
 }

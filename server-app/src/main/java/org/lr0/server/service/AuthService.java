@@ -9,5 +9,6 @@ import org.lr0.server.data.req.LoginInfoReq;
 public interface AuthService {
     
     R<String> login(LoginInfoReq loginInfoReq);
-    
+
+    R<Void> register(LoginInfoReq loginInfoReq);
 }
