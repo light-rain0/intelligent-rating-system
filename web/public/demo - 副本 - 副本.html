@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>data</title> 
+		<title></title> 
 		<link href="css/antd.min.css" rel="stylesheet" type="text/css" />
 		<script src="js/vue.min.js"></script>
 		<script src="js/antd.min.js"></script>
@@ -50,16 +50,16 @@
 			<a-layout id="components-layout-demo-custom-trigger">
 				<a-layout-sider v-model="collapsed" :trigger="null" collapsible style="background:linear-gradient(to right, #9796f0, #fbc7d4);">
 					<div>
-						<a-menu :default-open-keys="['sub-1']" :default-selected-keys="['sub-1-1-2']" mode="inline" style="width: 200px">
+						<a-menu :default-open-keys="['sub-1']" :default-selected-keys="['']" mode="inline" style="width: 200px">
 							<a-sub-menu key="sub-1" title="工作台">
 								<a-menu-item-group key="sub-1-1">
 									<a-menu-item key="sub-1-1-1"><a href="home.html">导入</a></a-menu-item>
 									<a-menu-item key="sub-1-1-2">Data</a-menu-item>
 								</a-menu-item-group>
 							</a-sub-menu>
-							<a-sub-menu key="sub2" title="日志">
-								<a-menu-item key="5">A</a-menu-item>
-								<a-menu-item key="6">B</a-menu-item>
+							<a-sub-menu key="sub-2" title="日志">
+								<a-menu-item key="sub-2-1">待建...</a-menu-item>
+								<a-menu-item key="sub-2-2">待建...</a-menu-item>
 							</a-sub-menu>
 						</a-menu>
 					</div>
@@ -72,7 +72,6 @@
 					<!-- 面包屑导航 -->
 					<a-breadcrumb id="crumbs">
 						<a-breadcrumb-item>Home</a-breadcrumb-item>
-						<a-breadcrumb-item>Data</a-breadcrumb-item>
 					</a-breadcrumb>
 
 					<!-- 主要内容区域 -->

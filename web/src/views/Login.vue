@@ -14,6 +14,7 @@ export default {
 	methods: {
 		goRegister() {
 			this.$router.push('/register');
+			// this.$router.push('/test')
 		},
 		async handleLogin() {
 			axios.post(
@@ -23,15 +24,15 @@ export default {
 				.then(res => res.data)
 				.then(data => {
 					console.log("token", data.data);
+
 					if (data.statusCode === 'C00000') {
+						// alert(data.statusCode)
 						// 页面跳转
-						// this.$router.push('/html-file');
 						this.$router.push('/html-file');
-						// window.location.href = "/../../public/home.html"
 					} else {
 						//登录错误提示
-						this.$message.success("hhh")
-						// alert(data.statusMessage);
+						// this.$message.success("账号或密码错误")
+						alert("账号或密码错误");
 					}
 				})
 				.catch(err => {
@@ -50,11 +51,11 @@ export default {
 					<h2>登录</h2>
 					<div class="input-group">
 						<input v-model="loginForm.username" required type="text">
-						<label for="">username</label>
+						<label for="">用户名</label>
 					</div>
 					<div class="input-group">
 						<input v-model="loginForm.password" required type="password">
-						<label for="">password</label>
+						<label for="">密码</label>
 					</div>
 					<button class="btn" type="button" @click="handleLogin">登录</button>
 					<div class="sign-link">

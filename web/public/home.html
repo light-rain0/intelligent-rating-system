@@ -1,317 +1,433 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<title>首页</title>
-		<link href="css/antd.min.css" rel="stylesheet" type="text/css" />
-		<script src="js/vue.min.js"></script>
-		<script src="js/antd.min.js"></script>
-		<script src="js/xlsx.full.min.js"></script>
-		<style>
-		/* 固定表头样式 */
-        .ant-table-thead > tr:first-child > th {
-            position: sticky;
+<head>
+    <meta charset="utf-8">
+    <title>首页</title>
+    <link href="css/antd.min.css" rel="stylesheet" type="text/css" />
+    <link href="css/calendar.css" rel="stylesheet" type="text/css"/>
+    <script src="js/vue.min.js"></script>
+    <script src="js/antd.min.js"></script>
+    <script src="js/xlsx.full.min.js"></script>
+    <style>
+		#time{
+			margin-left: 25px;
+			margin-top: 20px;
+		}
+        #components-layout-demo-custom-trigger { 
+            min-height: 100vh; 
+        }
+        #table-container { 
+            margin: 24px 16px; 
+            background: #fff; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); 
+            overflow: hidden; 
+        }
+        .ant-table { 
+            min-width: 100% !important; 
+            border: 1px solid #f0f0f0; 
+        }
+        .filter-group { 
+            display: flex; 
+            gap: 16px; 
+            align-items: center; 
+        }
+        #crumbs { 
+            margin: 16px 24px; 
+            padding: 8px 16px; 
+            background: #fff; 
+            border-radius: 4px; 
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); 
+        }
+        /* 完全重构的抽屉样式 */
+        .todo-drawer {
+            position: fixed;
             top: 0;
-            z-index: 1;
-            background: #fafafa !important;
+            right: -420px;
+            width: 420px;
+            height: 100%;
+            background: white;
+            box-shadow: -2px 0 12px rgba(0,0,0,0.2);
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
         }
-        
-        .ant-table-thead > tr:nth-child(2) > th {
-            position: sticky;
-            top: 49px;
-            z-index: 1;
-            background: #fafafa !important;
+        .todo-drawer.open { 
+            right: 0; 
         }
-
-        /* 布局容器 */
-        #components-layout-demo-custom-trigger {
-            min-height: 100vh;
-        }
-
-        /* 表格容器样式 */
-        #table-container {
-            margin: 24px 16px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            overflow: hidden;
-        }
-
-        /* 工具栏布局 */
-        .toolbar {
-            padding: 24px 24px 0;
+        .drawer-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 16px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 20px;
         }
-
-        /* 表格基础样式 */
-        .ant-table {
-            min-width: 100% !important;
-            border: 1px solid #f0f0f0;
-        }
-
-        /* 组件间距 */
-        .filter-group {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-
-        /* 面包屑样式优化 */
-        #crumbs {
-            margin: 16px 24px;
-            padding: 8px 16px;
-            background: #fff;
-            border-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        /* 表名显示样式 */
-        .sheet-name {
-            margin: 0 24px 16px;
-            padding: 8px 16px;
-            background: #fff;
-            border-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            font-size: 14px;
+        .drawer-header h3 {
+            margin: 0;
+            font-size: 18px;
             color: rgba(0, 0, 0, 0.85);
         }
-
-        /* 隐藏上传文件列表 */
-        .ant-upload-list {
-            display: none;
+        .todo-editor {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .todo-list {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin: 8px 0;
+            background: #fafafa;
+            border-radius: 6px;
+            transition: all 0.2s;
+            border: 1px solid #f0f0f0;
+        }
+        .todo-item:hover {
+            background: #f5f5f5;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        .todo-content {
+            flex: 1;
+            margin: 0 12px;
+            word-break: break-word;
+            color: rgba(0, 0, 0, 0.85);
+        }
+        .completed-text {
+            text-decoration: line-through;
+            color: rgba(0, 0, 0, 0.25);
+        }
+        .todo-actions {
+            flex-shrink: 0;
+            display: flex;
+            gap: 8px;
+        }
+        .empty-tips {
+            color: rgba(0, 0, 0, 0.25);
+            text-align: center;
+            padding: 24px;
+            font-size: 14px;
+        }
+        .new-todo-input {
+            margin-top: auto;
+            display: flex;
+            gap: 8px;
+        }
+        .new-todo-input .ant-input {
+            flex: 1;
+        }
+        .new-todo-input .ant-btn {
+            flex-shrink: 0;
+        }
+        .editing-item {
+            background: #e6f7ff;
+            border-color: #91d5ff;
+        }
+        /* 添加小绿点和小红点样式 */
+        .calendar-days .has-completed-todo {
+            position: relative;
+        }
+        .calendar-days .has-completed-todo::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 6px;
+            height: 6px;
+            background-color: green;
+            border-radius: 50%;
+        }
+        .calendar-days .has-uncompleted-todo {
+            position: relative;
+        }
+        .calendar-days .has-uncompleted-todo::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 6px;
+            height: 6px;
+            background-color: red;
+            border-radius: 50%;
         }
     </style>
-	</head>
-	<body>
-		<div id="app">
-			<a-layout id="components-layout-demo-custom-trigger">
-				<a-layout-sider v-model="collapsed" :trigger="null" collapsible style="background:linear-gradient(to right, #9796f0, #fbc7d4);">
-					<div>
-						<a-menu :default-open-keys="['sub-1']" :default-selected-keys="['sub-1-1-1']" mode="inline" style="width: 200px">
-							<a-sub-menu key="sub-1" title="工作台">
-								<a-menu-item-group key="sub-1-1">
-									<a-menu-item key="sub-1-1-1">导入</a-menu-item>
-									<a-menu-item key="sub-1-1-2"><a href="Data.html">Data</a></a-menu-item>
-								</a-menu-item-group>
-							</a-sub-menu>
-							<a-sub-menu key="sub2" title="日志">
-								<a-menu-item key="5">A</a-menu-item>
-								<a-menu-item key="6">B</a-menu-item>
-							</a-sub-menu>
-						</a-menu>
-					</div>
-				</a-layout-sider>
+</head>
+<body>
+    <div id="app">
+        <!-- 完整的抽屉组件 -->
+        <div :class="{open: showDrawer}" class="todo-drawer">
+            <div class="drawer-header">
+                <h3>{{ selectedDate }} 待办事项</h3>
+                <a-button icon="close" type="link" @click="closeDrawer"></a-button>
+            </div>
+            <div class="todo-editor">
+                <div class="todo-list">
+                    <template v-if="todos[selectedDate] && todos[selectedDate].length > 0">
+                        <div v-for="(todo, index) in todos[selectedDate]" 
+                            :key="todo.id" 
+                            :class="{'editing-item': todo.editing}"
+                            class="todo-item">
+                            <template v-if="todo.editing">
+                                <a-input 
+                                    v-model="todo.content" 
+                                    :maxLength="100"
+                                    autoFocus
+                                    class="todo-content"
+                                    @pressEnter="saveEdit(todo)"
+                                />
+                                <div class="todo-actions">
+                                    <a-button icon="check" type="primary" @click="saveEdit(todo)"></a-button>
+                                    <a-button icon="close" @click="cancelEdit(todo)"></a-button>
+                                </div>
+                            </template>
+                            <template v-else>
+                                <a-checkbox 
+                                    :checked="todo.completed"
+                                    style="margin-right: 8px;"
+                                    @change="e => toggleTodo(todo, e)">
+                                </a-checkbox>
+                                <span :class="{'completed-text': todo.completed}" class="todo-content">
+                                    {{ todo.content }}
+                                </span>
+                                <div class="todo-actions">
+                                    <a-button 
+                                        icon="edit"
+                                        style="color: #1890ff;"
+                                        type="link"
+                                        @click="startEdit(todo)">
+                                    </a-button>
+                                    <a-popconfirm
+                                        cancelText="取消"
+                                        okText="确定"
+                                        title="确定删除吗？"
+                                        @confirm="deleteTodo(selectedDate, index)">
+                                        <a-button 
+                                            icon="delete"
+                                            style="color: #ff4d4f;"
+                                            type="link">
+                                        </a-button>
+                                    </a-popconfirm>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <div v-else class="empty-tips">当天暂无待办事项</div>
+                </div>
+                
+                <div class="new-todo-input">
+                    <a-input 
+                        v-model="newTodo" 
+                        :maxLength="100"
+                        placeholder="输入新待办事项（最多100字）"
+                        @pressEnter="addTodo"
+                    ></a-input>
+                    <a-button type="primary" @click="addTodo">添加</a-button>
+                </div>
+            </div>
+        </div>
 
-				<a-layout>
-					<!-- 头部区域 -->
-					<a-layout-header style="background: #fff; padding: 0"></a-layout-header>
+        <a-layout id="components-layout-demo-custom-trigger">
+            <a-layout-sider v-model="collapsed" :trigger="null" collapsible style="background:linear-gradient(to right, #9796f0, #fbc7d4);">
+                <div>
+                    <a-menu :default-open-keys="['sub-1']" :default-selected-keys="['']" mode="inline" style="width: 200px">
+                        <a-sub-menu key="sub-1" title="工作台">
+                            <a-menu-item-group key="sub-1-1">
+                                <a-menu-item key="sub-1-1-1"><a href="import.html">导入</a></a-menu-item>
+                                <a-menu-item key="sub-1-1-2"><a href="data_one.html">单表数据分析</a></a-menu-item>
+								<a-menu-item key="sub-1-1-3"><a href="data_double.html"></a>多表数据分析</a-menu-item>
+                            </a-menu-item-group>
+                        </a-sub-menu>
+                        <a-sub-menu key="sub-2" title="活动">
+                            <a-menu-item key="sub-2-1">待建...</a-menu-item>
+                            <a-menu-item key="sub-2-2">待建...</a-menu-item>
+                        </a-sub-menu>
+                    </a-menu>
+                </div>
+            </a-layout-sider>
 
-					<!-- 面包屑导航 -->
-					<a-breadcrumb id="crumbs">
-						<a-breadcrumb-item>Home</a-breadcrumb-item>
-						<a-breadcrumb-item>导入</a-breadcrumb-item>
-					</a-breadcrumb>
+            <a-layout>
+                <a-layout-header style="background: #fff; padding: 0">
+                </a-layout-header>
 
-					<!-- 表名显示 -->
-					<div v-if="sheetName" class="sheet-name">
-						当前表格：{{ sheetName }}
-					</div>
+                <a-breadcrumb id="crumbs">
+                    <a-breadcrumb-item>Home</a-breadcrumb-item>
+                </a-breadcrumb>
 
-					<!-- 主要内容区域 -->
-					<a-layout-content>
-						<div id="table-container">
-							<div class="toolbar">
-								<!-- 左侧操作区 -->
-								<div class="filter-group">
-									<!-- 文件上传 -->
-									<a-upload :before-upload="beforeUpload"
-										:multiple="true" 
-										:show-upload-list="false"
-										name="file">
-										<a-button type="primary">上传文件
-											<a-icon type="upload" />
-										</a-button>
-									</a-upload>
+                <a-layout-content>
+                    <div id="time">
+                        <div class="calendar">
+                            <div class="calendar-header">
+                                <span id="month-picker" class="month-picker"> May </span>
+                                <div id="year-picker" class="year-picker">
+                                    <span id="pre-year" class="year-change"><pre style="margin-bottom: 0px;"> < </pre></span>
+                                    <span id="year">2020 </span>
+                                    <span id="next-year" class="year-change"><pre style="margin-bottom: 0px;"> > </pre></span>
+                                </div>
+                            </div>
+                            <div class="calendar-body">
+                                <div class="calendar-week-days">
+                                    <div>Sun</div><div>Mon</div><div>Tue</div>
+                                    <div>Wed</div><div>Thu</div><div>Fri</div>
+                                    <div>Sat</div>
+                                </div>
+                                <div class="calendar-days"></div>
+                            </div>
+                            <div class="calendar-footer"></div>
+                            <div class="date-time-formate">
+                                <div class="day-text-formate">TODAY</div>
+                                <div class="date-time-value">
+                                    <div class="time-formate">02:51:20</div>
+                                    <div class="date-formate">23 - july - 2022</div>
+                                </div>
+                            </div>
+                            <div class="month-list"></div>
+                        </div>
+                    </div>
+                </a-layout-content>
+            </a-layout>
+        </a-layout>
+    </div>
 
-									<!-- 排序筛选组件 -->
-									<a-select v-model="sortOrder" placeholder="排序方式" style="width: 120px">
-										<a-select-option value="">默认排序</a-select-option>
-										<a-select-option value="asc">成绩升序</a-select-option>
-										<a-select-option value="desc">成绩降序</a-select-option>
-									</a-select>
+    <script>
+        var vm = new Vue({
+            el: "#app",
+            data() {
+                return {
+                    collapsed: false,
+                    current: ['mail'],
+                    openKeys: ['sub1'],
+                    showDrawer: false,
+                    selectedDate: '',
+                    newTodo: '',
+                    todos: {},
+                    originalContent: ''
+                };
+            },
+            methods: {
+                openDrawer(date) {
+                    console.log("Opening drawer for date:", date); // 调试信息
+                    this.selectedDate = date;
+                    if (!this.todos[date]) {
+                        this.$set(this.todos, date, []);
+                    }
+                    this.showDrawer = true;
+                    this.newTodo = '';
+                },
+                closeDrawer() {
+                    // 关闭前取消所有编辑状态
+                    this.todos[this.selectedDate]?.forEach(todo => {
+                        if(todo.editing) {
+                            todo.content = this.originalContent;
+                            todo.editing = false;
+                        }
+                    });
+                    this.showDrawer = false;
+                    // 触发关闭抽屉事件
+                    const event = new CustomEvent('closeDrawer');
+                    document.dispatchEvent(event);
+                    // 刷新标记
+                    this.refreshCalendarMarks();
+                },
+                addTodo() {
+                    const content = this.newTodo.trim();
+                    console.log("Adding todo:", content); // 调试信息
+                    if (content) {
+                        this.todos[this.selectedDate].push({
+                            id: Date.now(),
+                            content: content,
+                            completed: false,
+                            editing: false
+                        });
+                        this.saveTodos();
+                        this.newTodo = '';
+                    } else {
+                        console.log("Todo content is empty"); // 调试信息
+                    }
+                },
+                deleteTodo(date, index) {
+                    this.todos[date].splice(index, 1); // 删除待办事项
+                    this.saveTodos(); // 保存到 localStorage
 
-									<a-select v-model="examStatus" placeholder="考试状态" style="width: 120px">
-										<a-select-option value="">全部</a-select-option>
-										<a-select-option value="completed">已参加</a-select-option>
-										<a-select-option value="uncompleted">未参加</a-select-option>
-									</a-select>
-
-									<a-select v-model="passStatus" placeholder="成绩状态" style="width: 120px">
-										<a-select-option value="">全部</a-select-option>
-										<a-select-option value="pass">合格</a-select-option>
-										<a-select-option value="fail">不合格</a-select-option>
-									</a-select>
-
-									<a-input-number v-model="passingScore" :max="100" :min="0" placeholder="及格线" style="width: 100px" />
-								</div>
-
-								<!-- 搜索框 -->
-								<a-input-search v-model="searchText" allow-clear placeholder="输入关键词搜索" style="width: 300px" @search="handleSearch" />
-							</div>
-
-							<!-- 数据表格 -->
-							<div style="padding: 0 24px 24px;">
-								<a-table :columns="columns" :data-source="filteredData" :pagination="false" :rowClassName="(record, index) => (index % 2 === 1 ? 'table-row-light' : 'table-row-dark')" :scroll="{ x: 'max-content', y: 'calc(100vh - 280px)' }"
-								 bordered
-								  />
-							</div>
-						</div>
-					</a-layout-content>
-				</a-layout>
-			</a-layout>
-		</div>
-		<script>
-			var vm = new Vue({
-				el: "#app",
-				data() {
-					return {
-						// 布局状态
-						collapsed: false, // 侧边栏折叠状态
-						current: ['mail'], // 当前菜单项
-						openKeys: ['sub1'], // 打开的菜单项
-
-						// 表格数据
-						tableData: [], // 当前显示数据
-						originalData: [], // 原始数据备份
-						columns: [], // 表头配置
-						sheetName: '', // Excel表名
-
-						// 筛选排序状态
-						searchText: '', // 搜索关键词
-						sortOrder: '', // 排序方式（asc/desc/空）
-						examStatus: '', // 考试状态筛选
-						passStatus: '', // 成绩状态筛选
-						passingScore: 70 // 及格分数线
-					};
-				},
-				computed: {
-					// 处理后的表格数据
-					filteredData() {
-						let data = this.tableData;
-
-						//文本搜索过滤
-						if (this.searchText) {
-							const search = this.searchText.toLowerCase();
-							data = data.filter(row =>
-								Object.values(row).some(value =>
-									String(value).toLowerCase().includes(search))
-							);
-						}
-
-						//考试状态筛选）
-						if (this.examStatus === 'completed') {
-							data = data.filter(row => row['9'] !== '未参加考试');
-						} else if (this.examStatus === 'uncompleted') {
-							data = data.filter(row => row['9'] === '未参加考试');
-						}
-
-						//成绩状态筛选
-						if (this.passStatus === 'pass') {
-							data = data.filter(row => {
-								const score = parseFloat(row['8']);
-								return !isNaN(score) && score >= this.passingScore;
-							});
-						} else if (this.passStatus === 'fail') {
-							data = data.filter(row => {
-								const score = parseFloat(row['8']);
-								return !isNaN(score) && score < this.passingScore;
-							});
-						}
-
-						//成绩排序
-						if (this.sortOrder) {
-							data = [...data].sort((a, b) => {
-								const scoreA = parseFloat(a['8']) || 0;
-								const scoreB = parseFloat(b['8']) || 0;
-								return this.sortOrder === 'asc' ? scoreA - scoreB : scoreB - scoreA;
-							});
-						}
-
-						return data;
-					}
-				},
-				methods: {
-					// 文件上传前处理
-					beforeUpload(file) {
-						const reader = new FileReader();
-						reader.onload = (e) => {
-							// 解析Excel数据
-							const workbook = XLSX.read(e.target.result, {
-								type: 'binary'
-							});
-							const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-							const jsonData = XLSX.utils.sheet_to_json(worksheet, {
-								header: 1
-							});
-
-							// 获取表名
-							this.sheetName = workbook.SheetNames[0];
-
-							// 生成表头
-							const frontColumns = jsonData[1].slice(0, 25).map((col, index) => ({
-								title: col,
-								dataIndex: index.toString(),
-								key: index.toString(),
-								width: 200,
-								ellipsis: true,
-								align: 'center'
-							}));
-
-							const middleColumns = jsonData[2].slice(25, 77).map((col, index) => ({
-								title: col,
-								dataIndex: (25 + index).toString(),
-								key: (25 + index).toString(),
-								width: 200,
-								ellipsis: true,
-								align: 'center'
-							}));
-
-							const endColumns = jsonData[1].slice(77, 80).map((col, index) => ({
-								title: col || `列${77 + index}`,
-								dataIndex: (77 + index).toString(),
-								key: (77 + index).toString(),
-								width: 200,
-								ellipsis: true,
-								align: 'center'
-							}));
-
-							this.columns = [...frontColumns, ...middleColumns, ...endColumns];
-							const newData = jsonData.slice(3).map((row, rowIndex) => {
-								const rowData = {};
-								for (let cellIndex = 0; cellIndex < 81; cellIndex++) {
-									rowData[cellIndex.toString()] = row[cellIndex] || '';
-								}
-								rowData.key = rowIndex.toString();
-								return rowData;
-							});
-
-							this.originalData = newData;
-							this.tableData = newData;
-							localStorage.setItem('examData', JSON.stringify(newData));
-						};
-						reader.readAsBinaryString(file);
-						return false;
-					},
-
-					// 搜索处理
-					handleSearch(value) {
-						this.searchText = value;
-					}			
-				}
-			});
-		</script>
-	</body>
+                    // 检查当天是否还有待办事项
+                    if (this.todos[date].length === 0) {
+                        // 如果没有待办事项，触发清除标记的逻辑
+                        const event = new CustomEvent('clearDateMark', { detail: date });
+                        document.dispatchEvent(event);
+                    }
+                },
+                startEdit(todo) {
+                    this.originalContent = todo.content;
+                    todo.editing = true;
+                },
+                saveEdit(todo) {
+                    todo.editing = false;
+                    this.saveTodos();
+                },
+                cancelEdit(todo) {
+                    todo.content = this.originalContent;
+                    todo.editing = false;
+                },
+                toggleTodo(todo, e) {
+                    todo.completed = e.target.checked;
+                    this.saveTodos();
+                },
+                saveTodos() {
+                    // 清理空数组的日期
+                    const cleanedTodos = {};
+                    Object.keys(this.todos).forEach(date => {
+                        if (this.todos[date].length > 0) {
+                            cleanedTodos[date] = this.todos[date];
+                        }
+                    });
+                    this.todos = cleanedTodos;
+                    localStorage.setItem('calendarTodos', JSON.stringify(this.todos));
+                },
+                refreshCalendarMarks() {
+                    // 触发日历重新生成，刷新标记
+                    const event = new CustomEvent('refreshCalendar');
+                    document.dispatchEvent(event);
+                }
+            },
+            mounted() {
+                const saved = localStorage.getItem('calendarTodos');
+                console.log("Loaded todos from localStorage:", saved); // 调试信息
+                if(saved) {
+                    try {
+                        this.todos = JSON.parse(saved);
+                        // 数据格式兼容处理
+                        Object.keys(this.todos).forEach(date => {
+                            this.todos[date] = this.todos[date].map(item => {
+                                return typeof item === 'string' ? {
+                                    id: Date.now(),
+                                    content: item,
+                                    completed: false,
+                                    editing: false
+                                } : item;
+                            });
+                        });
+                        this.saveTodos();
+                    } catch(e) {
+                        console.error('数据解析失败:', e);
+                    }
+                }
+                document.addEventListener('dateClick', (e) => {
+                    this.openDrawer(e.detail);
+                });
+                document.addEventListener('refreshCalendar', () => {
+                    // 重新生成日历
+                    generateCalendar(currentMonth.value, currentYear.value);
+                });
+            }
+        });
+    </script>
+    <script src="js/calendar.js"></script>
+</body>
 </html>

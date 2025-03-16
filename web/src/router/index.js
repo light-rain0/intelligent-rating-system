@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Login from "@/views/Login.vue";
 import Register from "@/views/Register.vue";
+import Test from "@/views/Register.vue";
 
 Vue.use(VueRouter)
 
@@ -19,6 +20,10 @@ const routes = [
         path: '/register',
         component: Register
     },
+    {
+        path: '/test',
+        component: Test
+    },
     // 跳转主页面路径
     {
         path: '/html-file',
@@ -27,6 +32,7 @@ const routes = [
             return ''; // 防止 Vue Router 报错
         }
     }
+
 ]
 
 const router = new VueRouter({

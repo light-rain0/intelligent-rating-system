@@ -1,81 +1,99 @@
 <script>
-import axios from "../../axios";
+import axios from 'axios';
 
 export default {
-	name: "RegisterView",
 	data() {
 		return {
-			registerForm: {
-				username: 'admin',
-				password: 'admin'
+			form: {
+				username: '',
+				password: '',
+				nickname: '',
 			},
-			confirmPasswd: ''
-		}
+			avatarFile: null
+		};
 	},
 	methods: {
-		goLogin() {
-			this.$router.push('/login');
-		},
-		async handRegister() {
-			if (this.registerForm.password === this.confirmPasswd) {
-				console.log(("二次密码一致"+ this.registerForm.password + this.confirmPasswd))
-				axios.post(
-					"/api/auth/register",
-					this.registerForm
-				)
-					.then(res => res.data)
-					.then(data => {
-						console.log("token", data.data);
-						if (data.statusCode === 'C00000') {
-							// 提示注册成功
-							alert("注册成功")
-							// this.$router.push('/register');
-						} else {
-							alert(data.statusMessage);
-						}
-					})
-					.catch(err => {
-					});
-			} else {
-				alert(("用户名或密码错误"+ this.registerForm.password + this.confirmPasswd))
+		handleAvatarChange(e) {
+			const file = e.target.files[0];
+			if (file) {
+				this.avatarFile = file;
+				alert('头像已选择: ' + file.name);
 			}
+		},
+		triggerFileInput() {
+			// 触发隐藏的文件输入框
+			document.getElementById('avatar').click();
+		},
+		async handleRegister() {
+			try {
+				const formData = new FormData();
+				formData.append('username', this.form.username);
+				formData.append('password', this.form.password);
+				formData.append('nickname', this.form.nickname);
+				if (this.avatarFile) {
+					formData.append('avatar', this.avatarFile);
+				}
 
+				const response = await axios.post('/api/auth/register', formData, {
+					headers: {
+						'Content-Type': 'multipart/form-data'
+					}
+				});
+
+				console.log("注册成功", response.data);
+				if (response.data.statusCode === 'C0000') {
+					alert('注册成功');
+					await this.$router.push('/login'); // 跳转到登录页面
+				} else {
+					alert(response.data.statusMessage || '注册失败');
+				}
+			} catch (error) {
+				console.error('注册失败:', error);
+				alert('注册请求出错，请稍后重试');
+			}
+		},
+		goLogin() {
+			this.$router.push('/login'); // 跳转到登录页面
 		}
 	}
-}
+};
 </script>
-
 <template>
 	<div id="all">
 		<div class="wrapper">
 			<div class="form-wrapper sign-in">
-				<form action="">
+				<form @submit.prevent="handleRegister">
 					<h2>注册</h2>
 					<div class="input-group">
-						<input v-model.trim="registerForm.username" required type="text">
-						<label for="">username</label>
+						<input id="username" v-model="form.username" required type="text">
+						<label for="username">账号</label>
 					</div>
 					<div class="input-group">
-						<input v-model.trim="registerForm.password" required type="password">
-						<label for="">password</label>
+						<input id="password" v-model="form.password" required type="password">
+						<label for="password">密码</label>
 					</div>
 					<div class="input-group">
-						<input v-model="confirmPasswd" required type="password">
-						<label for="">confirm password</label>
+						<input id="nickname" v-model="form.nickname" required type="text">
+						<label for="nickname">昵称</label>
 					</div>
-					<button class="btn" type="submit" @click="handRegister()">注册</button>
+					<div class="input-group">
+						<!-- 隐藏的文件输入框 -->
+						<input id="avatar" style="display: none;" type="file" @change="handleAvatarChange">
+						<!-- 自定义上传按钮 -->
+						<button class="btn-upload" type="button" @click="triggerFileInput">上传头像</button>
+					</div>
+					<button class="btn-register" type="submit">注册</button>
 					<div class="sign-link">
-						<p>返回<a class="signup-link" href="#" @click="goLogin()">登录</a></p>
+						<p>已有账号? <a class="signup-link" href="#" @click="goLogin">登录</a></p>
 					</div>
 				</form>
 			</div>
 		</div>
 	</div>
-
 </template>
 
-<style lang="less" scoped>
 
+<style scoped>
 * {
 	margin: 0;
 }
@@ -85,17 +103,14 @@ export default {
 	justify-content: center;
 	align-items: center;
 	min-height: 100vh;
-	background: linear-gradient(#e91e63, #2196f3);
-
+	background: linear-gradient(#2196f3, #e91e63);
 }
 
 .wrapper {
-	margin: 0 auto;
-
 	display: flex;
 	position: relative;
 	width: 400px;
-	height: 500px;
+	height: 600px; /* 调整高度以适应更多输入框 */
 }
 
 .form-wrapper {
@@ -120,7 +135,7 @@ h2 {
 .input-group {
 	position: relative;
 	width: 320px;
-	margin: 30px 0;
+	margin: 20px 0; /* 调整间距 */
 }
 
 .input-group label {
@@ -154,24 +169,38 @@ h2 {
 	background: #fff;
 }
 
-
-.btn {
-	position: relative;
-	top: 0;
-	left: 0;
+.btn-register {
 	width: 100%;
 	height: 40px;
-	background: linear-gradient(to right, #2196f3,
-	#e91e63);
+	background: linear-gradient(to right, #2196f3, #e91e63);
 	box-shadow: 0 2px 10px rgba(0, 0, 0, .4);
 	font-size: 16px;
-
 	color: #fff;
 	font-weight: 500;
 	cursor: pointer;
 	border-radius: 5px;
 	border: none;
 	outline: none;
+	margin-top: 10px;
+}
+
+.btn-register:hover {
+	background: linear-gradient(to right, #1e88e5, #d81b60);
+}
+
+.btn-upload {
+	width: 100%;
+	height: 40px;
+	background: #f0f0f0;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	font-size: 16px;
+	color: #333;
+	cursor: pointer;
+}
+
+.btn-upload:hover {
+	background: #e0e0e0;
 }
 
 .sign-link {
@@ -185,7 +214,12 @@ h2 {
 }
 
 .sign-link p a {
-	color: #e91e63
+	color: #e91e63;
+	text-decoration: none;
+	cursor: pointer;
+}
 
+.sign-link p a:hover {
+	text-decoration: underline;
 }
 </style>

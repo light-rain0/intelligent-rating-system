@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>多表数据分析</title>
+    <link href="css/antd.min.css" rel="stylesheet" type="text/css" />
+    <script src="js/vue.min.js"></script>
+    <script src="js/antd.min.js"></script>
+    <script src="js/xlsx.full.min.js"></script>
+    <script charset="utf-8" src="js/echarts.min.js" type="text/javascript"></script>
+    <style>
+        #chart-container {
+            margin: 24px;
+            padding: 24px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            min-height: 500px;
+            min-width: 800px;
+            position: relative;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            color: rgba(0,0,0,0.85);
+            margin-bottom: 20px;
+            padding-left: 8px;
+            border-left: 4px solid #1890ff;
+        }
+
+        #components-layout-demo-custom-trigger {
+            min-height: 100vh;
+        }
+
+        #crumbs {
+            margin: 16px 24px;
+            padding: 8px 16px;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .loading-message, .error-message {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .error-message {
+            color: #ff4d4f;
+        }
+
+        .button-group {
+            margin: 16px 24px 0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .button-group button {
+            padding: 8px 16px;
+            background-color: #1890ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .button-group button:hover {
+            background-color: #40a9ff;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <a-layout id="components-layout-demo-custom-trigger">
+            <a-layout-sider v-model="collapsed" :trigger="null" collapsible style="background:linear-gradient(to right, #9796f0, #fbc7d4);">
+                <div>
+                    <a-menu :default-open-keys="['sub-1']" :default-selected-keys="['sub-1-1-3']" mode="inline" style="width: 200px">
+                        <a-sub-menu key="sub-1" title="工作台">
+                            <a-menu-item-group key="sub-1-1">
+                                <a-menu-item key="sub-1-1-1"><a href="import.html">导入</a></a-menu-item>
+                                <a-menu-item key="sub-1-1-2"><a href="data_one.html">单表数据分析</a></a-menu-item>
+                                <a-menu-item key="sub-1-1-3"><a href="data_double.html">多表数据分析</a></a-menu-item>
+                            </a-menu-item-group>
+                        </a-sub-menu>
+                        <a-sub-menu key="sub2" title="日志">
+                            <a-menu-item key="5">待建...</a-menu-item>
+                            <a-menu-item key="6">待建...</a-menu-item>
+                        </a-sub-menu>
+                    </a-menu>
+                </div>
+            </a-layout-sider>
+
+            <a-layout>
+                <a-layout-header style="background: #fff; padding: 0"></a-layout-header>
+
+                <a-breadcrumb id="crumbs">
+                    <a-breadcrumb-item><a href="home.html">首页</a></a-breadcrumb-item>
+                    <a-breadcrumb-item><a href="import.html">导入</a></a-breadcrumb-item>
+                </a-breadcrumb>
+
+                <a-layout-content>
+                    <div class="button-group">
+                        <button @click="renderChart('average')">📈 平均分折线图</button>
+                        <button @click="renderChart('questionCompare')">📝 题目得分率对比</button>
+                    </div>
+                    
+                    <div id="chart-container">
+                        <div class="chart-title">{{ chartTitle }}</div>
+                        <div id="main-chart" style="width: 100%; height: 450px;"></div>
+                    </div>
+                </a-layout-content>
+            </a-layout>
+        </a-layout>
+    </div>
+    <script>
+    var vm = new Vue({
+        el: "#app",
+        data() {
+            return {
+                collapsed: false,
+                chartData: [],
+                chartTitle: '请选择分析维度',
+                questionColumns: [],
+                totalScoreColumn: null,
+                isDataLoaded: false,
+                examDataList: [] // 存储多次考试的数据
+            };
+        },
+        mounted() {
+            this.loadData();
+        },
+        methods: {
+            loadData() {
+                try {
+                    const savedData = localStorage.getItem('examDataList');
+                    if (!savedData) {
+                        console.error('数据未找到，请先导入Excel文件');
+                        return;
+                    }
+
+                    this.examDataList = JSON.parse(savedData);
+                    this.isDataLoaded = true;
+
+                    // 动态生成题目列
+                    if (this.examDataList.length > 0) {
+                        const firstExam = this.examDataList[0];
+                        this.questionColumns = Object.keys(firstExam[0]).filter(key => 
+                            key.startsWith('单选题') || key.startsWith('多选题')
+                        );
+                    }
+
+                    // 调试日志
+                    console.log('数据已加载:', this.examDataList);
+                } catch (e) {
+                    console.error('数据解析失败:', e);
+                }
+            },
+
+            calculateAverageScores() {
+                const averageScores = this.examDataList.map(examData => {
+                    const scores = examData.map(item => parseFloat(item['总分']) || 0);
+                    const total = scores.reduce((sum, score) => sum + score, 0);
+                    return (total / scores.length).toFixed(2);
+                });
+                return averageScores;
+            },
+
+            calculateQuestionScoreProbability(key, examData) {
+                const totalStudents = examData.length;
+                if (totalStudents === 0) return 0;
+
+                const scoredStudents = examData.filter(item => {
+                    const score = parseFloat(item[key]);
+                    return !isNaN(score) && score > 0;
+                });
+
+                const probability = (scoredStudents.length / totalStudents) * 100;
+                return probability.toFixed(2);
+            },
+
+            renderChart(type) {
+                if (!this.isDataLoaded) {
+                    console.error('数据未加载完成，请稍后再试');
+                    return;
+                }
+
+                // 根据不同的 type 设置 chartTitle
+                switch(type) {
+                    case 'average':
+                        this.chartTitle = '多次考试平均分折线图';
+                        break;
+                    case 'questionCompare':
+                        this.chartTitle = '多次考试题目得分率对比';
+                        break;
+                    default:
+                        this.chartTitle = '请选择分析维度';
+                }
+
+                this.$nextTick(() => {
+                    try {
+                        const chartDom = document.getElementById('main-chart');
+                        if (!chartDom) {
+                            console.error('图表容器未找到');
+                            return;
+                        }
+                        
+                        const myChart = echarts.init(chartDom);
+                        myChart.clear();
+
+                        chartDom.style.width = '100%';
+                        chartDom.style.height = '450px';
+                        myChart.resize();
+
+                        switch(type) {
+                            case 'average':
+                                this.renderAverageChart(myChart);
+                                break;
+                            case 'questionCompare':
+                                this.renderQuestionCompareChart(myChart);
+                                break;
+                        }
+                    } catch (e) {
+                        console.error('图表渲染失败:', e);
+                        chartDom.innerHTML = '<div class="error-message">图表生成失败，请检查数据格式</div>';
+                    }
+                });
+            },
+
+            renderAverageChart(chart) {
+                const averageScores = this.calculateAverageScores();
+                const option = {
+                    title: { show: false },
+                    tooltip: { trigger: 'axis' },
+                    xAxis: {
+                        type: 'category',
+                        data: this.examDataList.map((_, index) => `第${index + 1}次考试`),
+                        axisLabel: { color: '#666' }
+                    },
+                    yAxis: { 
+                        type: 'value',
+                        axisLabel: { color: '#666' }
+                    },
+                    series: [{
+                        type: 'line',
+                        data: averageScores,
+                        itemStyle: {
+                            color: '#1890ff'
+                        }
+                    }],
+                    grid: { containLabel: true, left: '3%', right: '3%' }
+                };
+                chart.setOption(option);
+            },
+
+            renderQuestionCompareChart(chart) {
+                const questionData = this.examDataList.map((examData, index) => {
+                    const labels = [];
+                    const values = [];
+
+                    this.questionColumns.forEach((col, colIndex) => {
+                        const scoreProbability = this.calculateQuestionScoreProbability(col, examData);
+                        labels.push(`第${colIndex + 1}题`);
+                        values.push(Number(scoreProbability));
+                    });
+
+                    return { labels, values, name: `第${index + 1}次考试` };
+                });
+
+                const option = {
+                    title: { show: false },
+                    tooltip: { trigger: 'axis' },
+                    xAxis: {
+                        type: 'category',
+                        data: questionData[0].labels,
+                        axisLabel: { color: '#666' }
+                    },
+                    yAxis: { 
+                        type: 'value',
+                        axisLabel: { color: '#666' },
+                        max: 100
+                    },
+                    series: questionData.map(data => ({
+                        type: 'line',
+                        data: data.values,
+                        name: data.name,
+                        itemStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#83bff6' },
+                                { offset: 1, color: '#188df0' }
+                            ])
+                        }
+                    })),
+                    grid: { containLabel: true, left: '3%', right: '3%' }
+                };
+                chart.setOption(option);
+            }
+        }
+    });
+    </script>
+</body>
+</html>
