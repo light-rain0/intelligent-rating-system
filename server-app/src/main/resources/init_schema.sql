@@ -4,6 +4,8 @@ create table user_info
     username   varchar(64) not null comment '工号',
     password   varchar(64) not null comment '密码',
     token      varchar(64) not null default '',
+--      avatar     blob,
+    avatar_uri varchar(255),
     created_at datetime    not null default now(),
     updated_at datetime    not null default now() on update now()
 );
